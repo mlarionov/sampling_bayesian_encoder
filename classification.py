@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.pipeline import Pipeline
 from category_encoders.leave_one_out import LeaveOneOutEncoder
-from sampling_bayesian import SamplingBayesianEncoder, EncoderWrapper, TaskType
+from category_encoders.sampling_bayesian import SamplingBayesianEncoder, EncoderWrapper, TaskType
 import optuna
 from optuna.distributions import *
 from sklearn.model_selection import GridSearchCV
