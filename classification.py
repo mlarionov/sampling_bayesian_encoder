@@ -12,7 +12,6 @@ import optuna
 from optuna.distributions import *
 from sklearn.model_selection import GridSearchCV
 
-
 # Some constants
 rs_split = 8379
 rs_enc = 1179
@@ -71,7 +70,7 @@ def cv_leave_one_out_encoder(predictors, y_h):
     print(loo_search.best_params_)
     test_predict = loo_search.best_estimator_.predict(X_test)
     print('Test accuracy: ', accuracy_score(y_test, test_predict))
-    return loo_search.best_estimator_
+    return loo_search
 
 
 def cv_sampling(predictors, y_h):
@@ -102,15 +101,39 @@ def cv_sampling(predictors, y_h):
     return search
 
 
+def study_mapper(predictors, y_h, search, filename):
+    X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
+    X_train = pd.DataFrame(X_train, columns=predictors.columns)
+    X_test = pd.DataFrame(X_test, columns=predictors.columns)
+    pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
+                                  n_draws=search.best_params_['encoder__n_draws'],
+                                  random_state=2834,
+                                  prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
+                                  mapper=search.best_params_['encoder__mapper']
+                                  )
+    model = RandomForestClassifier(n_estimators=400,
+                                   max_depth=search.best_params_['classifier__max_depth'],
+                                   max_features=search.best_params_['classifier__max_features'],
+                                   min_samples_leaf=search.best_params_['classifier__min_samples_leaf'],
+                                   random_state=2834, n_jobs=-1)
+    wrapper_model = EncoderWrapper(pte, model)
+    param_range = ['mean', 'weight_of_evidence']
+    grid_search = GridSearchCV(estimator=wrapper_model, param_grid={'encoder__mapper': param_range})
+    grid_search.fit(X_train, y_train)
+    with open(filename, 'wb') as pickle_file:
+        pickle.dump(grid_search.cv_results_, pickle_file)
+
+
 def study_n_draws(predictors, y_h, search, filename):
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
     X_test = pd.DataFrame(X_test, columns=predictors.columns)
     pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
-                                       n_draws=search.best_params_['encoder__n_draws'],
-                                       random_state=2834,
-                                       prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
-                                       )
+                                  n_draws=search.best_params_['encoder__n_draws'],
+                                  random_state=2834,
+                                  prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
+                                  mapper=search.best_params_['encoder__mapper']
+                                  )
     model = RandomForestClassifier(n_estimators=400,
                                    max_depth=search.best_params_['classifier__max_depth'],
                                    max_features=search.best_params_['classifier__max_features'],
@@ -129,10 +152,11 @@ def study_prior_samples_ratio(predictors, y_h, search, filename):
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
     X_test = pd.DataFrame(X_test, columns=predictors.columns)
     pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
-                                       n_draws=search.best_params_['encoder__n_draws'],
-                                       random_state=2834,
-                                       prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
-                                       )
+                                  n_draws=search.best_params_['encoder__n_draws'],
+                                  random_state=2834,
+                                  prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
+                                  mapper=search.best_params_['encoder__mapper']
+                                  )
     model = RandomForestClassifier(n_estimators=400,
                                    max_depth=search.best_params_['classifier__max_depth'],
                                    max_features=search.best_params_['classifier__max_features'],
@@ -141,23 +165,8 @@ def study_prior_samples_ratio(predictors, y_h, search, filename):
     wrapper_model = EncoderWrapper(pte, model)
     param_range = range(-10, -1)
     grid_search = GridSearchCV(estimator=wrapper_model,
-                           param_grid={'encoder__prior_samples_ratio': [10 ** i for i in param_range]})
+                               param_grid={'encoder__prior_samples_ratio': [10 ** i for i in param_range]})
     grid_search.fit(X_train, y_train)
 
     with open(filename, 'wb') as pickle_file:
         pickle.dump(grid_search.cv_results_, pickle_file)
-
-
-
-if __name__ == '__main__':
-    predictors, y_h = create_data()
-
-    #random_forest(predictors, y_h)
-
-    cv_leave_one_out_encoder(predictors, y_h)
-
-    #search = cv_sampling(predictors, y_h)
-
-    #study_n_draws(predictors, y_h, search, "study_n_draws.pickle")
-
-    #study_prior_samples_ratio(predictors, y_h, search, "study_prior_samples_ratio.pickle")
