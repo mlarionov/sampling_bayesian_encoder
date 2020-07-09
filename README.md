@@ -11,5 +11,12 @@ To get the latest version use:
 
 ## Experimental Studies
 
+### Classification tasks
+
+We use two synthetic data sets, one is generated using `make_classification()`, and another `make_hastie_10_2()` from `scikit-learn`.
+To run cross-validation run `classification_cv.py`. It saves the model in the pickle format. To run the studies, 
+mentioned in the paper run  `classification_studies.py`. Of our interest is to see how hyperparameters affect
+model accuracy. Also we are interested in finding out how sampling techniques affect feature importance as
+reported by Random Forest models.
 
 
