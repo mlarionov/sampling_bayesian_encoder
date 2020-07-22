@@ -7,7 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.pipeline import Pipeline
 from category_encoders.leave_one_out import LeaveOneOutEncoder
-from category_encoders.sampling_bayesian import SamplingBayesianEncoder, EncoderWrapper, TaskType
+from category_encoders.posterior_imputation_bc import PosteriorImputationEncoderBC
+from category_encoders.pte_utils import  EncoderWrapper
 import optuna
 from optuna.distributions import *
 from sklearn.model_selection import GridSearchCV
@@ -91,18 +92,17 @@ def cv_leave_one_out_encoder(predictors, y_h):
 
 
 def cv_sampling(predictors, y_h):
-    pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'], n_draws=5, random_state=2834, prior_samples_ratio=0,
-                                  task=TaskType.BINARY_CLASSIFICATION)
+    pte = PosteriorImputationEncoderBC(cols=['cat1', 'cat2'], n_draws=5, random_state=2834, prior_samples_ratio=0,)
     model = RandomForestClassifier(n_estimators=400, max_depth=30, max_features=1,
                                    random_state=2834, n_jobs=-1)
     wrapper_model = EncoderWrapper(pte, model)
     param_distribution = {
         'encoder__prior_samples_ratio': LogUniformDistribution(1E-10, 1E-1),
         'encoder__n_draws': IntUniformDistribution(1, 40),
-        'encoder__mapper': CategoricalDistribution(['mean', 'weight_of_evidence']),
-        'estimator__max_depth': IntUniformDistribution(5, 40),
-        'estimator__max_features': IntUniformDistribution(1, 10),
-        'estimator__min_samples_leaf': IntUniformDistribution(1, 10)
+        'encoder__leave_one_out': CategoricalDistribution([True, False]),
+        'classifier__max_depth': IntUniformDistribution(5, 40),
+        'classifier__max_features': IntUniformDistribution(1, 10),
+        'classifier__min_samples_leaf': IntUniformDistribution(1, 10)
     }
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
@@ -121,12 +121,12 @@ def cv_sampling(predictors, y_h):
 def study_mapper(predictors, y_h, search, filename):
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
-    pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
+    pte = PosteriorImputationEncoderBC(cols=['cat1', 'cat2'],
                                   n_draws=search.best_params_['encoder__n_draws'],
                                   random_state=2834,
                                   prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
                                   mapper=search.best_params_['encoder__mapper'],
-                                  task=TaskType.BINARY_CLASSIFICATION
+
                                   )
     model = RandomForestClassifier(n_estimators=400,
                                    max_depth=search.best_params_['classifier__max_depth'],
@@ -144,12 +144,11 @@ def study_mapper(predictors, y_h, search, filename):
 def study_n_draws(predictors, y_h, search, filename):
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
-    pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
+    pte = PosteriorImputationEncoderBC(cols=['cat1', 'cat2'],
                                   n_draws=search.best_params_['encoder__n_draws'],
                                   random_state=2834,
                                   prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
                                   mapper=search.best_params_['encoder__mapper'],
-                                  task=TaskType.BINARY_CLASSIFICATION
                                   )
     model = RandomForestClassifier(n_estimators=400,
                                    max_depth=search.best_params_['classifier__max_depth'],
@@ -167,12 +166,11 @@ def study_n_draws(predictors, y_h, search, filename):
 def study_prior_samples_ratio(predictors, y_h, search, filename):
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
-    pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
+    pte = PosteriorImputationEncoderBC(cols=['cat1', 'cat2'],
                                   n_draws=search.best_params_['encoder__n_draws'],
                                   random_state=2834,
                                   prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
                                   mapper=search.best_params_['encoder__mapper'],
-                                  task=TaskType.BINARY_CLASSIFICATION
                                   )
     model = RandomForestClassifier(n_estimators=400,
                                    max_depth=search.best_params_['classifier__max_depth'],
