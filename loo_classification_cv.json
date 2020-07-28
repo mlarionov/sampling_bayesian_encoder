@@ -1,0 +1,1 @@
+{"val_score": 0.821875, "best_params": {"loo__sigma": 0.004226987951344696, "rf__max_depth": 30, "rf__max_features": 5, "rf__min_samples_leaf": 1}, "test_score": 0.8165}

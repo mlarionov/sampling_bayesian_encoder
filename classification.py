@@ -11,6 +11,7 @@ from category_encoders.sampling_bayesian import SamplingBayesianEncoder, Encoder
 import optuna
 from optuna.distributions import *
 from sklearn.model_selection import GridSearchCV
+from utils import dump_optuna_results
 
 # Some constants
 rs_split = 8379
@@ -54,18 +55,6 @@ def create_data_hastie():
     return predictors, y_h
 
 
-def random_forest(X, y):
-    X_train, X_test, y_train, y_test = train_test_split(X.values, y, test_size=0.2, random_state=rs_split)
-    model = RandomForestClassifier(n_estimators=100, max_depth=2, max_features=3, min_samples_leaf=1,
-                                   random_state=rs_rf, n_jobs=-1)
-    model.fit(X_train, y_train)
-    predictions = model.predict_proba(X_test)[:, 1]
-    print('Train accuracy: ', accuracy_score(y_train, model.predict(X_train)))
-    print('Test accuracy: ', accuracy_score(y_test, predictions.round()))
-    print('AUC: ', roc_auc_score(y_test, predictions))
-    return model
-
-
 def cv_leave_one_out_encoder(predictors, y_h):
     loo = LeaveOneOutEncoder(cols=['cat1', 'cat2'], sigma=0.05, random_state=2834)
     rf = RandomForestClassifier(n_estimators=400, random_state=2834, n_jobs=-1)
@@ -80,24 +69,25 @@ def cv_leave_one_out_encoder(predictors, y_h):
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
     X_test = pd.DataFrame(X_test, columns=predictors.columns)
     loo_search = optuna.integration.OptunaSearchCV(pipe, param_distribution,
-                                                   cv=5, n_jobs=-1, random_state=514, n_trials=None, timeout=5 * 60,
+                                                   cv=5, n_jobs=-1, random_state=514, n_trials=35, timeout=None,
                                                    scoring='accuracy')
     loo_search.fit(X_train, y_train)
     print("Best parameter (CV score=%0.3f):" % loo_search.best_score_)
     print(loo_search.best_params_)
     test_predict = loo_search.best_estimator_.predict(X_test)
-    print('Test accuracy: ', accuracy_score(y_test, test_predict))
-    return loo_search
+    test_score = accuracy_score(y_test, test_predict)
+    print('Test accuracy: ', test_score)
+    return dump_optuna_results(loo_search, test_score)
 
 
 def cv_sampling(predictors, y_h):
     pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'], n_draws=5, random_state=2834, prior_samples_ratio=0,
-                                  task=TaskType.BINARY_CLASSIFICATION)
+                                  task=TaskType.BINARY_CLASSIFICATION, mapper='mean')
     model = RandomForestClassifier(n_estimators=400, max_depth=30, max_features=1,
                                    random_state=2834, n_jobs=-1)
     wrapper_model = EncoderWrapper(pte, model)
     param_distribution = {
-        'encoder__prior_samples_ratio': LogUniformDistribution(1E-10, 1E-1),
+        'encoder__prior_samples_ratio': LogUniformDistribution(1E-10, 1E-5),
         'encoder__n_draws': IntUniformDistribution(1, 40),
         'encoder__mapper': CategoricalDistribution(['mean', 'weight_of_evidence']),
         'estimator__max_depth': IntUniformDistribution(5, 40),
@@ -108,14 +98,15 @@ def cv_sampling(predictors, y_h):
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
     X_test = pd.DataFrame(X_test, columns=predictors.columns)
     search = optuna.integration.OptunaSearchCV(wrapper_model, param_distribution,
-                                               cv=5, n_jobs=-1, random_state=514, n_trials=None, timeout=90 * 60,
+                                               cv=5, n_jobs=-1, random_state=514, n_trials=35, timeout=None,
                                                scoring='accuracy')
     search.fit(X_train, y_train)
     print("Best parameter (CV score=%0.3f):" % search.best_score_)
     print(search.best_params_)
     test_predict = search.best_estimator_.predict(X_test)
-    print('Test accuracy: ', accuracy_score(y_test, test_predict))
-    return search
+    test_score = accuracy_score(y_test, test_predict)
+    print('Test accuracy: ', test_score)
+    return dump_optuna_results(search, test_score)
 
 
 def study_mapper(predictors, y_h, search, filename):

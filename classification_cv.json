@@ -1,0 +1,1 @@
+{"val_score": 0.7945, "best_params": {"encoder__prior_samples_ratio": 4.6652151163609514e-08, "encoder__n_draws": 6, "encoder__mapper": "mean", "estimator__max_depth": 33, "estimator__max_features": 5, "estimator__min_samples_leaf": 7}, "test_score": 0.793}
