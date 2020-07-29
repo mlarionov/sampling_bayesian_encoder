@@ -77,7 +77,7 @@ def cv_leave_one_out_encoder(predictors, y_h):
     test_predict = loo_search.best_estimator_.predict(X_test)
     test_score = accuracy_score(y_test, test_predict)
     print('Test accuracy: ', test_score)
-    return dump_optuna_results(loo_search, test_score)
+    return dump_optuna_results(loo_search, test_score, loo_search.best_estimator_.named_steps['rf'].feature_importances_)
 
 
 def cv_sampling(predictors, y_h):
@@ -106,7 +106,7 @@ def cv_sampling(predictors, y_h):
     test_predict = search.best_estimator_.predict(X_test)
     test_score = accuracy_score(y_test, test_predict)
     print('Test accuracy: ', test_score)
-    return dump_optuna_results(search, test_score)
+    return dump_optuna_results(search, test_score, search.best_estimator_.estimator.feature_importances_)
 
 
 def study_mapper(predictors, y_h, search, filename):
