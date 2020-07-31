@@ -1,17 +1,16 @@
+import optuna
 import pandas as pd
-import pickle
-from sklearn.datasets import make_classification,make_hastie_10_2
-from sklearn.preprocessing import KBinsDiscretizer
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, roc_auc_score
-from sklearn.pipeline import Pipeline
 from category_encoders.leave_one_out import LeaveOneOutEncoder
 from category_encoders.sampling_bayesian import SamplingBayesianEncoder, EncoderWrapper, TaskType
-import optuna
 from optuna.distributions import *
+from sklearn.datasets import make_classification, make_hastie_10_2
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV
-from utils import dump_optuna_results
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import KBinsDiscretizer
+from utils import *
 
 # Some constants
 rs_split = 8379
@@ -109,66 +108,66 @@ def cv_sampling(predictors, y_h):
     return dump_optuna_results(search, test_score, search.best_estimator_.estimator.feature_importances_)
 
 
-def study_mapper(predictors, y_h, search, filename):
+def study_mapper(predictors, y_h, search: dict, filename):
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
     pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
-                                  n_draws=search.best_params_['encoder__n_draws'],
+                                  n_draws=search['best_params']['encoder__n_draws'],
                                   random_state=2834,
-                                  prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
-                                  mapper=search.best_params_['encoder__mapper'],
+                                  prior_samples_ratio=search['best_params']['encoder__prior_samples_ratio'],
+                                  mapper=search['best_params']['encoder__mapper'],
                                   task=TaskType.BINARY_CLASSIFICATION
                                   )
     model = RandomForestClassifier(n_estimators=400,
-                                   max_depth=search.best_params_['classifier__max_depth'],
-                                   max_features=search.best_params_['classifier__max_features'],
-                                   min_samples_leaf=search.best_params_['classifier__min_samples_leaf'],
+                                   max_depth=search['best_params']['estimator__max_depth'],
+                                   max_features=search['best_params']['estimator__max_features'],
+                                   min_samples_leaf=search['best_params']['estimator__min_samples_leaf'],
                                    random_state=2834, n_jobs=-1)
     wrapper_model = EncoderWrapper(pte, model)
     param_range = ['mean', 'weight_of_evidence']
     grid_search = GridSearchCV(estimator=wrapper_model, param_grid={'encoder__mapper': param_range})
     grid_search.fit(X_train, y_train)
-    with open(filename, 'wb') as pickle_file:
-        pickle.dump(grid_search.cv_results_, pickle_file)
+    with open(filename, 'w') as json_file:
+        json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file)
 
 
-def study_n_draws(predictors, y_h, search, filename):
+def study_n_draws(predictors, y_h, search: dict, filename):
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
     pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
-                                  n_draws=search.best_params_['encoder__n_draws'],
+                                  n_draws=search['best_params']['encoder__n_draws'],
                                   random_state=2834,
-                                  prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
-                                  mapper=search.best_params_['encoder__mapper'],
+                                  prior_samples_ratio=search['best_params']['encoder__prior_samples_ratio'],
+                                  mapper=search['best_params']['encoder__mapper'],
                                   task=TaskType.BINARY_CLASSIFICATION
                                   )
     model = RandomForestClassifier(n_estimators=400,
-                                   max_depth=search.best_params_['classifier__max_depth'],
-                                   max_features=search.best_params_['classifier__max_features'],
-                                   min_samples_leaf=search.best_params_['classifier__min_samples_leaf'],
+                                   max_depth=search['best_params']['estimator__max_depth'],
+                                   max_features=search['best_params']['estimator__max_features'],
+                                   min_samples_leaf=search['best_params']['estimator__min_samples_leaf'],
                                    random_state=2834, n_jobs=-1)
     wrapper_model = EncoderWrapper(pte, model)
-    param_range = range(2, 20)
+    param_range = range(1, 10)
     grid_search = GridSearchCV(estimator=wrapper_model, param_grid={'encoder__n_draws': param_range})
     grid_search.fit(X_train, y_train)
-    with open(filename, 'wb') as pickle_file:
-        pickle.dump(grid_search.cv_results_, pickle_file)
+    with open(filename, 'w') as json_file:
+        json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file)
 
 
-def study_prior_samples_ratio(predictors, y_h, search, filename):
+def study_prior_samples_ratio(predictors, y_h, search: dict, filename):
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
     pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
-                                  n_draws=search.best_params_['encoder__n_draws'],
+                                  n_draws=search['best_params']['encoder__n_draws'],
                                   random_state=2834,
-                                  prior_samples_ratio=search.best_params_['encoder__prior_samples_ratio'],
-                                  mapper=search.best_params_['encoder__mapper'],
+                                  prior_samples_ratio=search['best_params']['encoder__prior_samples_ratio'],
+                                  mapper=search['best_params']['encoder__mapper'],
                                   task=TaskType.BINARY_CLASSIFICATION
                                   )
     model = RandomForestClassifier(n_estimators=400,
-                                   max_depth=search.best_params_['classifier__max_depth'],
-                                   max_features=search.best_params_['classifier__max_features'],
-                                   min_samples_leaf=search.best_params_['classifier__min_samples_leaf'],
+                                   max_depth=search['best_params']['estimator__max_depth'],
+                                   max_features=search['best_params']['estimator__max_features'],
+                                   min_samples_leaf=search['best_params']['estimator__min_samples_leaf'],
                                    random_state=2834, n_jobs=-1)
     wrapper_model = EncoderWrapper(pte, model)
     param_range = range(-10, -1)
@@ -176,5 +175,5 @@ def study_prior_samples_ratio(predictors, y_h, search, filename):
                                param_grid={'encoder__prior_samples_ratio': [10 ** i for i in param_range]})
     grid_search.fit(X_train, y_train)
 
-    with open(filename, 'wb') as pickle_file:
-        pickle.dump(grid_search.cv_results_, pickle_file)
+    with open(filename, 'w') as json_file:
+        json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file)
