@@ -129,7 +129,7 @@ def study_mapper(predictors, y_h, search: dict, filename):
     grid_search = GridSearchCV(estimator=wrapper_model, param_grid={'encoder__mapper': param_range})
     grid_search.fit(X_train, y_train)
     with open(filename, 'w') as json_file:
-        json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file)
+        json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file, indent=4)
 
 
 def study_n_draws(predictors, y_h, search: dict, filename):
@@ -152,7 +152,7 @@ def study_n_draws(predictors, y_h, search: dict, filename):
     grid_search = GridSearchCV(estimator=wrapper_model, param_grid={'encoder__n_draws': param_range})
     grid_search.fit(X_train, y_train)
     with open(filename, 'w') as json_file:
-        json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file)
+        json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file, indent=4)
 
 
 def study_prior_samples_ratio(predictors, y_h, search: dict, filename):
@@ -177,4 +177,4 @@ def study_prior_samples_ratio(predictors, y_h, search: dict, filename):
     grid_search.fit(X_train, y_train)
 
     with open(filename, 'w') as json_file:
-        json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file)
+        json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file, indent=4)
