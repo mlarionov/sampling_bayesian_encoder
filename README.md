@@ -20,6 +20,14 @@ run  `classification_studies.py`. Of our interest is to see how hyperparameters 
 Also we are interested in finding out how sampling techniques affect feature importance as reported 
 by Random Forest models. The study results are also saved in the `studies` folder.
 
+
+### Adult data set
+
+This is a binary classification problem. The goal is to predict whether the income is above 50K.
+To run the experiment download the file from 
+[here](https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data) and rename
+the file to `adult_raw.csv`. Then run the file `classification_adult.py`.
+
 ### Regression task
 
 Rather than using synthetic data, we decided to use a data set from Kaggle's competition 
