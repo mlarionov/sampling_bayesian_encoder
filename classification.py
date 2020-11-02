@@ -19,18 +19,19 @@ rs_rf = 5991
 n_samples = 10000
 
 
+def discretize(data, n_bins, seed):
+    disczr1 = KBinsDiscretizer(n_bins=n_bins, encode='ordinal', strategy='uniform')
+    return disczr1.fit_transform(data.reshape(-1, 1)) * seed % n_bins  # We want to break the monotonicity
+
+
 def create_data():
     # In this experiment we will use standard classification synthetic data
     X_h, y_h = make_classification(n_samples=n_samples, n_features=10, n_informative=5, n_redundant=0,
                                    class_sep=0.01, random_state=2834)
     # Now convert the last column to the categorical
-    disczr1 = KBinsDiscretizer(n_bins=20, encode='ordinal', strategy='uniform')
-    cat_column1 = disczr1.fit_transform(X_h[:, -1].reshape(-1, 1)) * 193 % 20  # We want to break the monotonicity
-    disczr2 = KBinsDiscretizer(n_bins=15, encode='ordinal', strategy='uniform')
-    cat_column2 = disczr2.fit_transform(X_h[:, -2].reshape(-1, 1)) * 173 % 20  # We want to break the monotonicity
     predictors = pd.DataFrame(X_h[:, 0:-2], columns=[f'col_{i}' for i in range(8)])
-    predictors['cat1'] = cat_column1
-    predictors['cat2'] = cat_column2
+    predictors['cat1'] = discretize(X_h[:, -1], 20, 193)
+    predictors['cat2'] = discretize(X_h[:, -2], 15, 173)
     # Uncomment the two lines if you want to keep the original columns
     # predictors['cat1_orig'] = cat_column1
     # predictors['cat2_orig'] = cat_column2
@@ -41,13 +42,9 @@ def create_data_hastie():
     X_h, y_h = make_hastie_10_2(random_state=2834)
     X_h = X_h.astype('float16')
     y_h[y_h == -1] = 0
-    disczr1 = KBinsDiscretizer(n_bins=20, encode='ordinal', strategy='uniform')
-    cat_column1 = disczr1.fit_transform(X_h[:, -1].reshape(-1, 1)) * 193 % 20  # We want to break the monotonicity
-    disczr2 = KBinsDiscretizer(n_bins=15, encode='ordinal', strategy='uniform')
-    cat_column2 = disczr2.fit_transform(X_h[:, -2].reshape(-1, 1)) * 173 % 20  # We want to break the monotonicity
     predictors = pd.DataFrame(X_h[:, 0:-2], columns=[f'col_{i}' for i in range(8)])
-    predictors['cat1'] = cat_column1
-    predictors['cat2'] = cat_column2
+    predictors['cat1'] = discretize(X_h[:, -1], 20, 193)
+    predictors['cat2'] = discretize(X_h[:, -2], 15, 173)
     # Uncomment the two lines if you want to keep the original columns
     # predictors['cat1_orig'] = cat_column1
     # predictors['cat2_orig'] = cat_column2
