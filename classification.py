@@ -18,41 +18,40 @@ rs_enc = 1179
 rs_rf = 5991
 n_samples = 10000
 
+prime_numbers = (101,103,107,109,113,127,131,137,139,149,151)
+bins = (20, 15, 13, 11, 9, 7, 5, 4, 3, 2, 1)
+
 
 def discretize(data, n_bins, seed):
     disczr1 = KBinsDiscretizer(n_bins=n_bins, encode='ordinal', strategy='uniform')
     return disczr1.fit_transform(data.reshape(-1, 1)) * seed % n_bins  # We want to break the monotonicity
 
 
-def create_data():
+def create_data(n_cat_columns):
     # In this experiment we will use standard classification synthetic data
     X_h, y_h = make_classification(n_samples=n_samples, n_features=10, n_informative=5, n_redundant=0,
                                    class_sep=0.01, random_state=2834)
     # Now convert the last column to the categorical
-    predictors = pd.DataFrame(X_h[:, 0:-2], columns=[f'col_{i}' for i in range(8)])
-    predictors['cat1'] = discretize(X_h[:, -1], 20, 193)
-    predictors['cat2'] = discretize(X_h[:, -2], 15, 173)
-    # Uncomment the two lines if you want to keep the original columns
-    # predictors['cat1_orig'] = cat_column1
-    # predictors['cat2_orig'] = cat_column2
-    return predictors, y_h
+    predictors = pd.DataFrame(X_h[:, 0:-n_cat_columns], columns=[f'col_{i}' for i in range(10-n_cat_columns)])
+    for cat_column_index in range(1, n_cat_columns+1):
+        predictors[f'cat{cat_column_index}'] = discretize(X_h[:, -cat_column_index], bins[cat_column_index],
+                                                          prime_numbers[cat_column_index])
+    return predictors, y_h, [f'cat{i}' for i in range(1, n_cat_columns+1)]
 
 
-def create_data_hastie():
+def create_data_hastie(n_cat_columns):
     X_h, y_h = make_hastie_10_2(random_state=2834)
     X_h = X_h.astype('float16')
     y_h[y_h == -1] = 0
-    predictors = pd.DataFrame(X_h[:, 0:-2], columns=[f'col_{i}' for i in range(8)])
-    predictors['cat1'] = discretize(X_h[:, -1], 20, 193)
-    predictors['cat2'] = discretize(X_h[:, -2], 15, 173)
-    # Uncomment the two lines if you want to keep the original columns
-    # predictors['cat1_orig'] = cat_column1
-    # predictors['cat2_orig'] = cat_column2
-    return predictors, y_h
+    predictors = pd.DataFrame(X_h[:, 0:-n_cat_columns], columns=[f'col_{i}' for i in range(10-n_cat_columns)])
+    for cat_column_index in range(1, n_cat_columns+1):
+        predictors[f'cat{cat_column_index}'] = discretize(X_h[:, -cat_column_index], bins[cat_column_index],
+                                                          prime_numbers[cat_column_index])
+    return predictors, y_h, [f'cat{i}' for i in range(1, n_cat_columns+1)]
 
 
-def cv_leave_one_out_encoder(predictors, y_h):
-    loo = LeaveOneOutEncoder(cols=['cat1', 'cat2'], sigma=0.05, random_state=2834)
+def cv_leave_one_out_encoder(predictors, y_h, cat_column_names):
+    loo = LeaveOneOutEncoder(cols=cat_column_names, sigma=0.05, random_state=2834)
     rf = RandomForestClassifier(n_estimators=400, random_state=2834, n_jobs=-1)
     pipe = Pipeline(steps=[('loo', loo), ('rf', rf)])
     param_distribution = {
@@ -65,7 +64,7 @@ def cv_leave_one_out_encoder(predictors, y_h):
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
     X_test = pd.DataFrame(X_test, columns=predictors.columns)
     loo_search = optuna.integration.OptunaSearchCV(pipe, param_distribution,
-                                                   cv=5, n_jobs=-1, random_state=514, n_trials=35, timeout=None,
+                                                   cv=5, n_jobs=1, random_state=514, n_trials=35, timeout=None,
                                                    scoring='accuracy')
     loo_search.fit(X_train, y_train)
     print("Best parameter (CV score=%0.3f):" % loo_search.best_score_)
@@ -77,8 +76,8 @@ def cv_leave_one_out_encoder(predictors, y_h):
                                loo_search.best_estimator_.named_steps['rf'].feature_importances_)
 
 
-def cv_sampling(predictors, y_h):
-    pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'], n_draws=5, random_state=2834, prior_samples_ratio=0,
+def cv_sampling(predictors, y_h, cat_column_names):
+    pte = SamplingBayesianEncoder(cols=cat_column_names, n_draws=5, random_state=2834, prior_samples_ratio=0,
                                   task=TaskType.BINARY_CLASSIFICATION, mapper='mean')
     model = RandomForestClassifier(n_estimators=400, max_depth=30, max_features=1,
                                    random_state=2834, n_jobs=-1)
@@ -95,7 +94,7 @@ def cv_sampling(predictors, y_h):
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
     X_test = pd.DataFrame(X_test, columns=predictors.columns)
     search = optuna.integration.OptunaSearchCV(wrapper_model, param_distribution,
-                                               cv=5, n_jobs=-1, random_state=514, n_trials=35, timeout=None,
+                                               cv=5, n_jobs=1, random_state=514, n_trials=35, timeout=None,
                                                scoring='accuracy')
     search.fit(X_train, y_train)
     print("Best parameter (CV score=%0.3f):" % search.best_score_)
