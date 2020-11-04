@@ -1,1 +1,24 @@
-{"val_score": 0.7945, "best_params": {"encoder__prior_samples_ratio": 4.6652151163609514e-08, "encoder__n_draws": 6, "encoder__mapper": "mean", "estimator__max_depth": 33, "estimator__max_features": 5, "estimator__min_samples_leaf": 7}, "test_score": 0.793}
+{
+    "val_score": 0.670375,
+    "best_params": {
+        "encoder__prior_samples_ratio": 6.30047592053824e-08,
+        "encoder__n_draws": 17,
+        "encoder__mapper": "weight_of_evidence",
+        "estimator__max_depth": 5,
+        "estimator__max_features": 6,
+        "estimator__min_samples_leaf": 2
+    },
+    "test_score": 0.6595,
+    "feature_importance": [
+        0.021230596027048212,
+        0.0058771920905126935,
+        0.06104747426678165,
+        0.002157326348208676,
+        0.002163576575007914,
+        0.7071139797556718,
+        0.001786116248520863,
+        0.036491578352460245,
+        0.13592092238993364,
+        0.026211237945854487
+    ]
+}
