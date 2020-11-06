@@ -1,1 +1,62 @@
-{"mean_fit_time": [2.2266578674316406, 2.313225030899048], "std_fit_time": [0.07001038042956792, 0.048736396156815], "mean_score_time": [0.30480265617370605, 0.32680206298828124], "std_score_time": [0.009767763600510557, 0.004533448766263728], "param_encoder__mapper": ["mean", "weight_of_evidence"], "params": [{"encoder__mapper": "mean"}, {"encoder__mapper": "weight_of_evidence"}], "split0_test_score": [0.8994791666666667, 0.8989583333333333], "split1_test_score": [0.8895833333333333, 0.890625], "split2_test_score": [0.8885416666666667, 0.8885416666666667], "split3_test_score": [0.89375, 0.8932291666666666], "split4_test_score": [0.8885416666666667, 0.8875], "mean_test_score": [0.8919791666666667, 0.8917708333333334], "std_test_score": [0.004213280920032668, 0.004093100563414266], "rank_test_score": [1, 2]}
+{
+    "mean_fit_time": [
+        43.14867873191834,
+        43.82896828651428
+    ],
+    "std_fit_time": [
+        0.16484458936735427,
+        0.09949004521784109
+    ],
+    "mean_score_time": [
+        6.115571308135986,
+        6.2299885749816895
+    ],
+    "std_score_time": [
+        0.03475726293671526,
+        0.02497972537948025
+    ],
+    "param_encoder__mapper": [
+        "mean",
+        "weight_of_evidence"
+    ],
+    "params": [
+        {
+            "encoder__mapper": "mean"
+        },
+        {
+            "encoder__mapper": "weight_of_evidence"
+        }
+    ],
+    "split0_test_score": [
+        0.8291666666666667,
+        0.8317708333333333
+    ],
+    "split1_test_score": [
+        0.8166666666666667,
+        0.8182291666666667
+    ],
+    "split2_test_score": [
+        0.8296875,
+        0.8296875
+    ],
+    "split3_test_score": [
+        0.8265625,
+        0.8276041666666667
+    ],
+    "split4_test_score": [
+        0.8291666666666667,
+        0.828125
+    ],
+    "mean_test_score": [
+        0.8262500000000002,
+        0.8270833333333332
+    ],
+    "std_test_score": [
+        0.004914635880035625,
+        0.0046584749531245655
+    ],
+    "rank_test_score": [
+        2,
+        1
+    ]
+}

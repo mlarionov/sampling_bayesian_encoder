@@ -1,1 +1,62 @@
-{"mean_fit_time": [14.496952676773072, 13.894874811172485], "std_fit_time": [1.0266049137426043, 0.273693540018577], "mean_score_time": [1.1553931713104248, 1.2763481140136719], "std_score_time": [0.06385940457678782, 0.06023843206716998], "param_encoder__mapper": ["mean", "weight_of_evidence"], "params": [{"encoder__mapper": "mean"}, {"encoder__mapper": "weight_of_evidence"}], "split0_test_score": [0.798125, 0.798125], "split1_test_score": [0.799375, 0.7975], "split2_test_score": [0.79375, 0.795625], "split3_test_score": [0.7925, 0.790625], "split4_test_score": [0.79875, 0.79875], "mean_test_score": [0.7965, 0.7961250000000001], "std_test_score": [0.002811805469800491, 0.0029421505739849335], "rank_test_score": [1, 2]}
+{
+    "mean_fit_time": [
+        40.67695093154907,
+        41.266496419906616
+    ],
+    "std_fit_time": [
+        0.5664206387960142,
+        0.12941421654462792
+    ],
+    "mean_score_time": [
+        5.3307826042175295,
+        5.398176097869873
+    ],
+    "std_score_time": [
+        0.06318942110737702,
+        0.05152411251647162
+    ],
+    "param_encoder__mapper": [
+        "mean",
+        "weight_of_evidence"
+    ],
+    "params": [
+        {
+            "encoder__mapper": "mean"
+        },
+        {
+            "encoder__mapper": "weight_of_evidence"
+        }
+    ],
+    "split0_test_score": [
+        0.655,
+        0.655
+    ],
+    "split1_test_score": [
+        0.67125,
+        0.67125
+    ],
+    "split2_test_score": [
+        0.6725,
+        0.6725
+    ],
+    "split3_test_score": [
+        0.671875,
+        0.671875
+    ],
+    "split4_test_score": [
+        0.675,
+        0.675
+    ],
+    "mean_test_score": [
+        0.669125,
+        0.669125
+    ],
+    "std_test_score": [
+        0.007176350047203657,
+        0.007176350047203657
+    ],
+    "rank_test_score": [
+        1,
+        1
+    ]
+}

@@ -105,10 +105,10 @@ def cv_sampling(predictors, y_h, cat_column_names):
     return dump_optuna_results(search, test_score, search.best_estimator_.estimator.feature_importances_)
 
 
-def study_mapper(predictors, y_h, search: dict, filename):
+def study_mapper(predictors, y_h, search: dict, filename, cat_column_names, generator):
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
-    pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
+    pte = SamplingBayesianEncoder(cols=cat_column_names,
                                   n_draws=search['best_params']['encoder__n_draws'],
                                   random_state=2834,
                                   prior_samples_ratio=search['best_params']['encoder__prior_samples_ratio'],
@@ -122,16 +122,17 @@ def study_mapper(predictors, y_h, search: dict, filename):
                                    random_state=2834, n_jobs=-1)
     wrapper_model = EncoderWrapper(pte, model)
     param_range = ['mean', 'weight_of_evidence']
-    grid_search = GridSearchCV(estimator=wrapper_model, param_grid={'encoder__mapper': param_range})
+    grid_search = GridSearchCV(estimator=wrapper_model, param_grid={'encoder__mapper': param_range},
+                               cv=generator)
     grid_search.fit(X_train, y_train)
     with open(filename, 'w') as json_file:
         json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file, indent=4)
 
 
-def study_n_draws(predictors, y_h, search: dict, filename):
+def study_n_draws(predictors, y_h, search: dict, filename, cat_column_names,  generator):
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
-    pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
+    pte = SamplingBayesianEncoder(cols=cat_column_names,
                                   n_draws=search['best_params']['encoder__n_draws'],
                                   random_state=2834,
                                   prior_samples_ratio=search['best_params']['encoder__prior_samples_ratio'],
@@ -145,16 +146,17 @@ def study_n_draws(predictors, y_h, search: dict, filename):
                                    random_state=2834, n_jobs=-1)
     wrapper_model = EncoderWrapper(pte, model)
     param_range = range(1, 10)
-    grid_search = GridSearchCV(estimator=wrapper_model, param_grid={'encoder__n_draws': param_range})
+    grid_search = GridSearchCV(estimator=wrapper_model, param_grid={'encoder__n_draws': param_range},
+                               cv=generator)
     grid_search.fit(X_train, y_train)
     with open(filename, 'w') as json_file:
         json.dump(get_serializable_cv_results(grid_search.cv_results_), json_file, indent=4)
 
 
-def study_prior_samples_ratio(predictors, y_h, search: dict, filename):
+def study_prior_samples_ratio(predictors, y_h, search: dict, filename, cat_column_names, generator):
     X_train, X_test, y_train, y_test = train_test_split(predictors.values, y_h, test_size=0.2, random_state=2834)
     X_train = pd.DataFrame(X_train, columns=predictors.columns)
-    pte = SamplingBayesianEncoder(cols=['cat1', 'cat2'],
+    pte = SamplingBayesianEncoder(cols=cat_column_names,
                                   n_draws=search['best_params']['encoder__n_draws'],
                                   random_state=2834,
                                   prior_samples_ratio=search['best_params']['encoder__prior_samples_ratio'],
@@ -169,7 +171,8 @@ def study_prior_samples_ratio(predictors, y_h, search: dict, filename):
     wrapper_model = EncoderWrapper(pte, model)
     param_range = range(-10, -1)
     grid_search = GridSearchCV(estimator=wrapper_model,
-                               param_grid={'encoder__prior_samples_ratio': [10 ** i for i in param_range]})
+                               param_grid={'encoder__prior_samples_ratio': [10 ** i for i in param_range]},
+                               cv=generator)
     grid_search.fit(X_train, y_train)
 
     with open(filename, 'w') as json_file:
