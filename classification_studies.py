@@ -4,7 +4,7 @@ from classification import *
 import json
 
 if __name__ == '__main__':
-    generator = KFold(n_splits=5, shuffle=True, random_state=8506)
+    generator = KFold(n_splits=10, shuffle=True, random_state=8506)
 
     predictors, y_h, cat_column_names = create_data(9)
     with open("studies/classification_cv.json", 'r') as json_file:
